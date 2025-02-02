@@ -49,7 +49,6 @@ def start_screen():
                 elif event.key == pygame.K_RETURN:
                     return selected + 1
 
-        # Отрисовка на базовой поверхности
         base_surface.fill((0, 0, 0))
         base_surface.blit(title, (base_width // 2 - title.get_width() // 2, 50))
 
@@ -58,7 +57,6 @@ def start_screen():
             text = font.render(f"Уровень {i + 1}", True, color)
             base_surface.blit(text, (base_width // 2 - text.get_width() // 2, 150 + i * 60))
 
-        # Масштабирование и вывод на экран
         scale = min(current_width / base_width, current_height / base_height)
         scaled_width = int(base_width * scale)
         scaled_height = int(base_height * scale)
@@ -98,7 +96,6 @@ def character_selection():
                 elif event.key == pygame.K_RETURN:
                     return
 
-        # Отрисовка на базовой поверхности
         base_surface.fill((0, 0, 0))
         base_surface.blit(title, (base_width // 2 - title.get_width() // 2, 50))
 
@@ -106,7 +103,6 @@ def character_selection():
         character_image = pygame.transform.scale(character_image, (200, 200))
         base_surface.blit(character_image, (base_width // 2 - 100, base_height // 2 - 100))
 
-        # Масштабирование и вывод на экран
         scale = min(current_width / base_width, current_height / base_height)
         scaled_width = int(base_width * scale)
         scaled_height = int(base_height * scale)
@@ -170,16 +166,12 @@ def game_loop(level):
 
     level_map = load_level(f'level{level}.txt')
     player = generate_level(level_map)
-
     move_cooldown = 200
     last_move_time = pygame.time.get_ticks()
-
-    goal_x = len(level_map[0]) - 1
-    goal_y = len(level_map) - 1
-
     vision_surface = pygame.Surface((5 * tile_width, 5 * tile_height))
 
     while True:
+        victory = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -201,25 +193,49 @@ def game_loop(level):
         current_time = pygame.time.get_ticks()
 
         if current_time - last_move_time > move_cooldown:
-            if keys[pygame.K_RIGHT] and check_box(player.pos_x + 1, player.pos_y):
-                player.pos_x += 1
-                player.rect.x += tile_width
-                last_move_time = current_time
-            if keys[pygame.K_LEFT] and check_box(player.pos_x - 1, player.pos_y):
-                player.pos_x -= 1
-                player.rect.x -= tile_width
-                last_move_time = current_time
-            if keys[pygame.K_UP] and check_box(player.pos_x, player.pos_y - 1):
-                player.pos_y -= 1
-                player.rect.y -= tile_height
-                last_move_time = current_time
-            if keys[pygame.K_DOWN] and check_box(player.pos_x, player.pos_y + 1):
-                player.pos_y += 1
-                player.rect.y += tile_height
-                last_move_time = current_time
+            width = len(level_map[0])
+            height = len(level_map)
 
-        if player.pos_x == goal_x and player.pos_y == goal_y:
+            # Обработка движения с проверкой выхода за границы
+            if keys[pygame.K_RIGHT]:
+                new_x = player.pos_x + 1
+                if new_x >= width:
+                    victory = True
+                elif check_box(new_x, player.pos_y):
+                    player.pos_x = new_x
+                    player.rect.x += tile_width
+                    last_move_time = current_time
+
+            if keys[pygame.K_LEFT]:
+                new_x = player.pos_x - 1
+                if new_x < 0:
+                    victory = True
+                elif check_box(new_x, player.pos_y):
+                    player.pos_x = new_x
+                    player.rect.x -= tile_width
+                    last_move_time = current_time
+
+            if keys[pygame.K_UP]:
+                new_y = player.pos_y - 1
+                if new_y < 0:
+                    victory = True
+                elif check_box(player.pos_x, new_y):
+                    player.pos_y = new_y
+                    player.rect.y -= tile_height
+                    last_move_time = current_time
+
+            if keys[pygame.K_DOWN]:
+                new_y = player.pos_y + 1
+                if new_y >= height:
+                    victory = True
+                elif check_box(player.pos_x, new_y):
+                    player.pos_y = new_y
+                    player.rect.y += tile_height
+                    last_move_time = current_time
+
+        if victory:
             balance += 10
+            print("Уровень пройден! Баланс:", balance)
             character_selection()
             level = start_screen()
             return game_loop(level)
@@ -265,6 +281,6 @@ def game_loop(level):
 
 
 # Основная программа
-level = start_screen()
 character_selection()
+level = start_screen()
 game_loop(level)
