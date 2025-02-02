@@ -1,6 +1,6 @@
 import pygame
 import sys
-import os
+from load_functions import load_image, load_level
 
 # Инициализация Pygame
 pygame.init()
@@ -12,19 +12,9 @@ base_surface = pygame.Surface((base_width, base_height))
 clock = pygame.time.Clock()
 
 # Переменные для меню
-characters = ["mario.png", "chill-guy.png", "dog_with_apple.png"]
+characters = ["chill-guy.png", "dog_with_apple.png", "nuggets.png", "steve.png"]
 current_character = 0
 balance = 0
-
-
-# Функции
-
-def load_image(name):
-    fullname = os.path.join('data', name)
-    if not os.path.isfile(fullname):
-        print(f"Файл с изображением '{fullname}' не найден")
-        sys.exit()
-    return pygame.image.load(fullname)
 
 
 def start_screen():
@@ -36,7 +26,6 @@ def start_screen():
     selected = 0
 
     while True:
-        # Обработка событий
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -86,7 +75,6 @@ def character_selection():
     title = font.render("Выбор персонажа", True, pygame.Color('white'))
 
     while True:
-        # Обработка событий
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -115,8 +103,8 @@ def character_selection():
         base_surface.blit(title, (base_width // 2 - title.get_width() // 2, 50))
 
         character_image = load_image(characters[current_character])
-        character_image = pygame.transform.scale(character_image, (100, 100))
-        base_surface.blit(character_image, (base_width // 2 - 50, base_height // 2 - 50))
+        character_image = pygame.transform.scale(character_image, (200, 200))
+        base_surface.blit(character_image, (base_width // 2 - 100, base_height // 2 - 100))
 
         # Масштабирование и вывод на экран
         scale = min(current_width / base_width, current_height / base_height)
@@ -138,6 +126,7 @@ def game_loop(level):
         'empty': load_image('floor.png')
     }
     player_image = load_image(characters[current_character])
+    player_image = pygame.transform.scale(player_image, (40, 40))
 
     tile_width = tile_height = 50
 
@@ -160,13 +149,6 @@ def game_loop(level):
             self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
             self.pos_x = pos_x
             self.pos_y = pos_y
-
-    def load_level(filename):
-        filename = "data/levels/" + filename
-        with open(filename, 'r') as mapFile:
-            level_map = [line.strip() for line in mapFile]
-        max_width = max(map(len, level_map))
-        return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
     def generate_level(level):
         new_player = None
@@ -198,7 +180,6 @@ def game_loop(level):
     vision_surface = pygame.Surface((5 * tile_width, 5 * tile_height))
 
     while True:
-        # Обработка событий
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -239,7 +220,6 @@ def game_loop(level):
 
         if player.pos_x == goal_x and player.pos_y == goal_y:
             balance += 10
-            print("Уровень пройден! Баланс:", balance)
             character_selection()
             level = start_screen()
             return game_loop(level)
@@ -259,8 +239,8 @@ def game_loop(level):
                 y = (dy + 2) * tile_height
                 vision_surface.blit(tile.image, (x, y))
 
-        player_vision_x = 2 * tile_width + 15
-        player_vision_y = 2 * tile_height + 5
+        player_vision_x = 2 * tile_width + 5
+        player_vision_y = 2 * tile_height
         vision_surface.blit(player.image, (player_vision_x, player_vision_y))
 
         # Отрисовка на базовой поверхности
@@ -285,6 +265,6 @@ def game_loop(level):
 
 
 # Основная программа
-character_selection()
 level = start_screen()
+character_selection()
 game_loop(level)
