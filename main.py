@@ -12,7 +12,7 @@ base_surface = pygame.Surface((base_width, base_height))
 clock = pygame.time.Clock()
 
 # Переменные для меню
-characters = ["chill-guy.png", "dog_with_apple.png", "nuggets.png", "steve.png"]
+characters = ["chill-guy.png", "dog_with_apple.png", "nuggets.png", "steve.png", "gopher.png", "elephant.png"]
 current_character = 0
 balance = 0
 
