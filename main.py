@@ -157,8 +157,8 @@ def victory_screen(time_str):
         small_font = pygame.font.Font(None, hint_size)
 
         # Рендерим текст
-        congrat_text = victory_font.render("Поздравляю с победой", True, pygame.Color('white'))
-        time_text = time_font.render(f"Вот ваше время прохождения: {time_str}", True, pygame.Color('white'))
+        congrat_text = victory_font.render("Вы смогли выбраться.", True, pygame.Color('white'))
+        time_text = time_font.render(f"Время прохождения: {time_str}", True, pygame.Color('white'))
         hint_text = small_font.render("Нажмите ENTER для выхода в главное меню", True, pygame.Color('white'))
 
         # Вычисляем координаты для центрирования
@@ -342,6 +342,10 @@ def game_loop(level):
                 y = (dy + 2) * tile_height
                 vision_surface.blit(tile.image, (x, y))
             if start_x == tile.pos_x or start_y == tile.pos_y or end_x == tile.pos_x or end_y == tile.pos_y:
+                dx = tile.pos_x - player.pos_x
+                dy = tile.pos_y - player.pos_y
+                x = (dx + 2) * tile_width
+                y = (dy + 2) * tile_height
                 dark_coords.append((x, y))
         for (x, y) in set(dark_coords):
             transparent_rect = pygame.Surface((50, 50), pygame.SRCALPHA)
