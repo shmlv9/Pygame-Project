@@ -4,6 +4,7 @@ from load_functions import load_image, load_level
 
 # Инициализация Pygame
 pygame.init()
+pygame.display.set_caption("Get Out")
 base_width, base_height = 500, 500
 current_width, current_height = base_width, base_height
 is_fullscreen = False
@@ -128,6 +129,10 @@ def character_selection():
 # Основной игровой процесс
 def game_loop(level):
     global balance, current_width, current_height, is_fullscreen, screen, TIME
+
+    pygame.mixer.music.load('data/music/music.mp3')
+    pygame.mixer.music.play(-1)
+    pygame.mixer.music.set_volume(0.5)
 
     tile_images = {
         'wall': load_image('box.png'),
@@ -263,6 +268,7 @@ def game_loop(level):
             print("Уровень пройден!")
             print("Время прохождения уровня:", TIME)
             print("Баланс:", balance)
+            pygame.mixer.music.stop()
             level = start_screen()
             character_selection()
             return game_loop(level)
@@ -274,6 +280,8 @@ def game_loop(level):
         start_y = player.pos_y - 2
         end_y = player.pos_y + 2
 
+        dark_coords = []
+
         for tile in tiles_group:
             if start_x <= tile.pos_x <= end_x and start_y <= tile.pos_y <= end_y:
                 dx = tile.pos_x - player.pos_x
@@ -281,6 +289,12 @@ def game_loop(level):
                 x = (dx + 2) * tile_width
                 y = (dy + 2) * tile_height
                 vision_surface.blit(tile.image, (x, y))
+            if start_x == tile.pos_x or start_y == tile.pos_y or end_x == tile.pos_x or end_y == tile.pos_y:
+                dark_coords.append((x, y))
+        for (x, y) in set(dark_coords):
+            transparent_rect = pygame.Surface((50, 50), pygame.SRCALPHA)
+            transparent_rect.fill((0, 0, 0, 128))
+            vision_surface.blit(transparent_rect, (x, y))
 
         player_vision_x = 2 * tile_width + 5
         player_vision_y = 2 * tile_height
