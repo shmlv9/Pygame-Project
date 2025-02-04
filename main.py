@@ -43,10 +43,16 @@ def start_screen():
                     else:
                         screen = pygame.display.set_mode((current_width, current_height), pygame.RESIZABLE)
                 elif event.key == pygame.K_DOWN:
+                    pygame.mixer.music.load('data/sounds/najatie-na-kompyuternuyu-knopku1.mp3')
+                    pygame.mixer.music.play()
                     selected = (selected + 1) % len(buttons)
                 elif event.key == pygame.K_UP:
+                    pygame.mixer.music.load('data/sounds/najatie-na-kompyuternuyu-knopku1.mp3')
+                    pygame.mixer.music.play()
                     selected = (selected - 1) % len(buttons)
                 elif event.key == pygame.K_RETURN:
+                    pygame.mixer.music.load('data/sounds/knopka-vyiklyuchatelya1.mp3')
+                    pygame.mixer.music.play()
                     return selected + 1
 
         base_surface.fill((0, 0, 0))
@@ -90,10 +96,16 @@ def character_selection():
                     else:
                         screen = pygame.display.set_mode((current_width, current_height), pygame.RESIZABLE)
                 elif event.key == pygame.K_RIGHT:
+                    pygame.mixer.music.load('data/sounds/najatie-na-kompyuternuyu-knopku1.mp3')
+                    pygame.mixer.music.play()
                     current_character = (current_character + 1) % len(characters)
                 elif event.key == pygame.K_LEFT:
+                    pygame.mixer.music.load('data/sounds/najatie-na-kompyuternuyu-knopku1.mp3')
+                    pygame.mixer.music.play()
                     current_character = (current_character - 1) % len(characters)
                 elif event.key == pygame.K_RETURN:
+                    pygame.mixer.music.load('data/sounds/knopka-vyiklyuchatelya1.mp3')
+                    pygame.mixer.music.play()
                     return
 
         base_surface.fill((0, 0, 0))
@@ -119,7 +131,8 @@ def game_loop(level):
 
     tile_images = {
         'wall': load_image('box.png'),
-        'empty': load_image('floor.png')
+        'empty': load_image('floor.png'),
+        'exit': load_image('exit.png')
     }
     player_image = load_image(characters[current_character])
     player_image = pygame.transform.scale(player_image, (40, 40))
@@ -157,7 +170,10 @@ def game_loop(level):
                 elif level[y][x] == '@':
                     Tile('empty', x, y)
                     new_player = Player(x, y)
-        return new_player
+                elif level[y][x] == 'E':
+                    Tile('exit', x, y)
+                    exit_coords = (x, y)
+        return new_player, exit_coords
 
     def check_box(x, y):
         if 0 <= y < len(level_map) and 0 <= x < len(level_map[0]):
@@ -165,7 +181,7 @@ def game_loop(level):
         return False
 
     level_map = load_level(f'level{level}.txt')
-    player = generate_level(level_map)
+    player, exit_coords = generate_level(level_map)
     move_cooldown = 200
     last_move_time = pygame.time.get_ticks()
     vision_surface = pygame.Surface((5 * tile_width, 5 * tile_height))
@@ -193,13 +209,11 @@ def game_loop(level):
         current_time = pygame.time.get_ticks()
 
         if current_time - last_move_time > move_cooldown:
-            width = len(level_map[0])
-            height = len(level_map)
 
             # Обработка движения с проверкой выхода за границы
             if keys[pygame.K_RIGHT]:
                 new_x = player.pos_x + 1
-                if new_x >= width:
+                if (new_x, player.pos_y) == exit_coords:
                     victory = True
                 elif check_box(new_x, player.pos_y):
                     player.pos_x = new_x
@@ -208,7 +222,7 @@ def game_loop(level):
 
             if keys[pygame.K_LEFT]:
                 new_x = player.pos_x - 1
-                if new_x < 0:
+                if (new_x, player.pos_y) == exit_coords:
                     victory = True
                 elif check_box(new_x, player.pos_y):
                     player.pos_x = new_x
@@ -217,7 +231,7 @@ def game_loop(level):
 
             if keys[pygame.K_UP]:
                 new_y = player.pos_y - 1
-                if new_y < 0:
+                if (player.pos_x, new_y) == exit_coords:
                     victory = True
                 elif check_box(player.pos_x, new_y):
                     player.pos_y = new_y
@@ -226,7 +240,7 @@ def game_loop(level):
 
             if keys[pygame.K_DOWN]:
                 new_y = player.pos_y + 1
-                if new_y >= height:
+                if (player.pos_x, new_y) == exit_coords:
                     victory = True
                 elif check_box(player.pos_x, new_y):
                     player.pos_y = new_y
@@ -236,8 +250,8 @@ def game_loop(level):
         if victory:
             balance += 10
             print("Уровень пройден! Баланс:", balance)
-            character_selection()
             level = start_screen()
+            character_selection()
             return game_loop(level)
 
         # Отрисовка поля зрения
@@ -281,6 +295,6 @@ def game_loop(level):
 
 
 # Основная программа
-character_selection()
 level = start_screen()
+character_selection()
 game_loop(level)
