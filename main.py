@@ -12,17 +12,15 @@ base_surface = pygame.Surface((base_width, base_height))
 clock = pygame.time.Clock()
 
 # Переменные для меню
-characters = ["chill-guy.png", "dog_with_apple.png", "nuggets.png", "steve.png", "gopher.png", "elephant.png"]
+characters = ["chill-guy.png", "dog_with_apple.png", "nuggets.png", "steve.png"]
 current_character = 0
 balance = 0
-
 
 def start_screen():
     global current_width, current_height, is_fullscreen, screen
     font = pygame.font.Font(None, 50)
     title = font.render("Выбор уровня", True, pygame.Color('white'))
     buttons = [font.render(f"Уровень {i + 1}", True, pygame.Color('white')) for i in range(5)]
-
     selected = 0
 
     while True:
@@ -57,7 +55,6 @@ def start_screen():
 
         base_surface.fill((0, 0, 0))
         base_surface.blit(title, (base_width // 2 - title.get_width() // 2, 50))
-
         for i, button in enumerate(buttons):
             color = (255, 0, 0) if i == selected else (255, 255, 255)
             text = font.render(f"Уровень {i + 1}", True, color)
@@ -71,7 +68,6 @@ def start_screen():
         screen.blit(scaled_surface, ((current_width - scaled_width) // 2, (current_height - scaled_height) // 2))
         pygame.display.flip()
         clock.tick(60)
-
 
 def character_selection():
     global current_character, current_width, current_height, is_fullscreen, screen
@@ -110,7 +106,6 @@ def character_selection():
 
         base_surface.fill((0, 0, 0))
         base_surface.blit(title, (base_width // 2 - title.get_width() // 2, 50))
-
         character_image = load_image(characters[current_character])
         character_image = pygame.transform.scale(character_image, (200, 200))
         base_surface.blit(character_image, (base_width // 2 - 100, base_height // 2 - 100))
@@ -124,6 +119,57 @@ def character_selection():
         pygame.display.flip()
         clock.tick(60)
 
+def victory_screen(time_str):
+    """
+    Отображает окно победы с поздравлением, временем прохождения и подсказкой.
+    Размеры шрифтов вычисляются пропорционально текущему размеру окна, а текст отрисовывается по центру.
+    """
+    global current_width, current_height, screen
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.VIDEORESIZE:
+                # Обновляем текущий размер окна и перезадаем режим
+                current_width, current_height = event.w, event.h
+                screen = pygame.display.set_mode((current_width, current_height), pygame.RESIZABLE)
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    return  # Выходим из окна победы
+
+        # Вычисляем коэффициент масштабирования относительно базового разрешения
+        scale = min(current_width / base_width, current_height / base_height)
+        # Определяем размеры шрифтов с учётом масштаба
+        header_size = max(1, int(40 * scale))
+        time_size = max(1, int(30 * scale))
+        hint_size = max(1, int(20 * scale))
+
+        # Создаем шрифты с динамическими размерами
+        victory_font = pygame.font.Font(None, header_size)
+        time_font = pygame.font.Font(None, time_size)
+        small_font = pygame.font.Font(None, hint_size)
+
+        # Рендерим текст
+        congrat_text = victory_font.render("Поздравляю с победой", True, pygame.Color('white'))
+        time_text = time_font.render(f"Вот ваше время прохождения: {time_str}", True, pygame.Color('white'))
+        hint_text = small_font.render("Нажмите ENTER для выхода в главное меню", True, pygame.Color('white'))
+
+        # Вычисляем координаты для центрирования
+        congrat_x = (current_width - congrat_text.get_width()) // 2
+        congrat_y = current_height // 3 - congrat_text.get_height() // 2
+        time_x = (current_width - time_text.get_width()) // 2
+        time_y = current_height // 2 - time_text.get_height() // 2
+        hint_x = (current_width - hint_text.get_width()) // 2
+        hint_y = (2 * current_height) // 3 - hint_text.get_height() // 2
+
+        # Отрисовываем окно победы
+        screen.fill((0, 0, 0))
+        screen.blit(congrat_text, (congrat_x, congrat_y))
+        screen.blit(time_text, (time_x, time_y))
+        screen.blit(hint_text, (hint_x, hint_y))
+        pygame.display.flip()
+        clock.tick(60)
 
 # Основной игровой процесс
 def game_loop(level):
@@ -136,7 +182,6 @@ def game_loop(level):
     }
     player_image = load_image(characters[current_character])
     player_image = pygame.transform.scale(player_image, (40, 40))
-
     tile_width = tile_height = 50
 
     all_sprites = pygame.sprite.Group()
@@ -186,7 +231,7 @@ def game_loop(level):
     last_move_time = pygame.time.get_ticks()
     vision_surface = pygame.Surface((5 * tile_width, 5 * tile_height))
 
-    # Засекаем время начала прохождения уровня
+    # Засекаем время начала уровня
     start_time = pygame.time.get_ticks()
 
     while True:
@@ -212,7 +257,6 @@ def game_loop(level):
         current_time = pygame.time.get_ticks()
 
         if current_time - last_move_time > move_cooldown:
-            # Обработка движения с проверкой выхода за границы
             if keys[pygame.K_RIGHT]:
                 new_x = player.pos_x + 1
                 if (new_x, player.pos_y) == exit_coords:
@@ -221,7 +265,6 @@ def game_loop(level):
                     player.pos_x = new_x
                     player.rect.x += tile_width
                     last_move_time = current_time
-
             if keys[pygame.K_LEFT]:
                 new_x = player.pos_x - 1
                 if (new_x, player.pos_y) == exit_coords:
@@ -230,7 +273,6 @@ def game_loop(level):
                     player.pos_x = new_x
                     player.rect.x -= tile_width
                     last_move_time = current_time
-
             if keys[pygame.K_UP]:
                 new_y = player.pos_y - 1
                 if (player.pos_x, new_y) == exit_coords:
@@ -239,7 +281,6 @@ def game_loop(level):
                     player.pos_y = new_y
                     player.rect.y -= tile_height
                     last_move_time = current_time
-
             if keys[pygame.K_DOWN]:
                 new_y = player.pos_y + 1
                 if (player.pos_x, new_y) == exit_coords:
@@ -249,7 +290,7 @@ def game_loop(level):
                     player.rect.y += tile_height
                     last_move_time = current_time
 
-        # Вычисляем прошедшее время в миллисекундах и преобразуем в ММ:СС
+        # Вычисляем время прохождения в формате ММ:СС
         elapsed_ms = pygame.time.get_ticks() - start_time
         total_seconds = elapsed_ms // 1000
         minutes = total_seconds // 60
@@ -257,23 +298,22 @@ def game_loop(level):
         time_str = f"{minutes:02d}:{seconds:02d}"
 
         if victory:
-            # Записываем время прохождения уровня в переменную TIME в формате ММ:СС
             TIME = time_str
             balance += 10
             print("Уровень пройден!")
             print("Время прохождения уровня:", TIME)
             print("Баланс:", balance)
+            victory_screen(time_str)
             level = start_screen()
             character_selection()
             return game_loop(level)
 
-        # Отрисовка поля зрения
+        # Отрисовка игрового поля (ограниченная видимость)
         vision_surface.fill((0, 0, 0))
         start_x = player.pos_x - 2
         end_x = player.pos_x + 2
         start_y = player.pos_y - 2
         end_y = player.pos_y + 2
-
         for tile in tiles_group:
             if start_x <= tile.pos_x <= end_x and start_y <= tile.pos_y <= end_y:
                 dx = tile.pos_x - player.pos_x
@@ -281,26 +321,21 @@ def game_loop(level):
                 x = (dx + 2) * tile_width
                 y = (dy + 2) * tile_height
                 vision_surface.blit(tile.image, (x, y))
-
         player_vision_x = 2 * tile_width + 5
         player_vision_y = 2 * tile_height
         vision_surface.blit(player.image, (player_vision_x, player_vision_y))
 
-        # Отрисовка на базовой поверхности
         base_surface.fill((0, 0, 0))
         base_surface.blit(vision_surface, (base_width // 2 - vision_surface.get_width() // 2,
                                            base_height // 2 - vision_surface.get_height() // 2))
 
-        # Отображение баланса в левом верхнем углу
+        # Отображение баланса и времени на базовой поверхности
         font_small = pygame.font.Font(None, 36)
         balance_text = font_small.render(f"Баланс: {balance}", True, pygame.Color('white'))
         base_surface.blit(balance_text, (10, 10))
-
-        # Отображение времени в правом верхнем углу
         time_text = font_small.render(time_str, True, pygame.Color('white'))
         base_surface.blit(time_text, (base_width - time_text.get_width() - 10, 10))
 
-        # Масштабирование и вывод на экран
         scale = min(current_width / base_width, current_height / base_height)
         scaled_width = int(base_width * scale)
         scaled_height = int(base_height * scale)
@@ -309,7 +344,6 @@ def game_loop(level):
         screen.blit(scaled_surface, ((current_width - scaled_width) // 2, (current_height - scaled_height) // 2))
         pygame.display.flip()
         clock.tick(60)
-
 
 # Основная программа
 level = start_screen()
