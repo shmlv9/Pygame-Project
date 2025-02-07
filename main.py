@@ -18,6 +18,80 @@ current_character = 0
 balance = 0
 
 
+def initial_screen():
+    """
+    Отображает начальный экран с надписью "Get Out" и кнопкой "Начать".
+    Экран масштабируется пропорционально базовому разрешению.
+    При нажатии на кнопку (либо клавишей ENTER, либо кликом мышью) возвращается управление.
+    """
+    global current_width, current_height, is_fullscreen, screen
+
+    # Создаём шрифты для заголовка и кнопки
+    title_font = pygame.font.Font(None, 80)
+    button_font = pygame.font.Font(None, 50)
+
+    # Рендерим текст
+    title_text = title_font.render("Get Out", True, pygame.Color('white'))
+    button_text = button_font.render("Начать", True, pygame.Color('white'))
+
+    # Вычисляем позиции: заголовок чуть выше центра, кнопка – ниже заголовка
+    title_pos = (base_width // 2 - title_text.get_width() // 2, base_height // 2 - title_text.get_height() - 20)
+    button_pos = (base_width // 2 - button_text.get_width() // 2, base_height // 2 + 20)
+    # Для проверки клика определяем прямоугольную область кнопки (в координатах базовой поверхности)
+    button_rect = button_text.get_rect(topleft=button_pos)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.VIDEORESIZE:
+                if not is_fullscreen:
+                    current_width, current_height = event.w, event.h
+                    screen = pygame.display.set_mode((current_width, current_height), pygame.RESIZABLE)
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_f:
+                    is_fullscreen = not is_fullscreen
+                    if is_fullscreen:
+                        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+                        current_width, current_height = screen.get_size()
+                    else:
+                        screen = pygame.display.set_mode((current_width, current_height), pygame.RESIZABLE)
+                elif event.key == pygame.K_RETURN:
+                    pygame.mixer.music.load('data/sounds/knopka-vyiklyuchatelya1.mp3')
+                    pygame.mixer.music.play()
+                    return  # Переход в меню выбора уровня
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Левая кнопка мыши
+                    # Преобразуем координаты мыши из экранных в координаты базовой поверхности
+                    scale = min(current_width / base_width, current_height / base_height)
+                    scaled_width = int(base_width * scale)
+                    scaled_height = int(base_height * scale)
+                    offset_x = (current_width - scaled_width) // 2
+                    offset_y = (current_height - scaled_height) // 2
+                    rel_x = (event.pos[0] - offset_x) / scale
+                    rel_y = (event.pos[1] - offset_y) / scale
+                    if button_rect.collidepoint(rel_x, rel_y):
+                        pygame.mixer.music.load('data/sounds/knopka-vyiklyuchatelya1.mp3')
+                        pygame.mixer.music.play()
+                        return
+
+        # Отрисовка на базовой поверхности
+        base_surface.fill((0, 0, 0))
+        base_surface.blit(title_text, title_pos)
+        base_surface.blit(button_text, button_pos)
+
+        # Масштабирование базовой поверхности под текущее окно
+        scale = min(current_width / base_width, current_height / base_height)
+        scaled_width = int(base_width * scale)
+        scaled_height = int(base_height * scale)
+        scaled_surface = pygame.transform.scale(base_surface, (scaled_width, scaled_height))
+        screen.fill((0, 0, 0))
+        screen.blit(scaled_surface, ((current_width - scaled_width) // 2, (current_height - scaled_height) // 2))
+        pygame.display.flip()
+        clock.tick(60)
+
+
 def start_screen():
     global current_width, current_height, is_fullscreen, screen
     font = pygame.font.Font(None, 50)
@@ -125,6 +199,7 @@ def character_selection():
         pygame.display.flip()
         clock.tick(60)
 
+
 def victory_screen(time_str):
     """
     Отображает окно победы с поздравлением, временем прохождения и подсказкой.
@@ -167,15 +242,16 @@ def victory_screen(time_str):
         time_x = (current_width - time_text.get_width()) // 2
         time_y = current_height // 2 - time_text.get_height() // 2
         hint_x = (current_width - hint_text.get_width()) // 2
-        hint_y = (2 * current_height) // 3 - hint_text.get_height() // 2
+        hint_y = (2 * current_width) // 3 - hint_text.get_height() // 2
 
-        # Отрисовываем окно победы
+        # Отрисовка окна победы
         screen.fill((0, 0, 0))
         screen.blit(congrat_text, (congrat_x, congrat_y))
         screen.blit(time_text, (time_x, time_y))
         screen.blit(hint_text, (hint_x, hint_y))
         pygame.display.flip()
         clock.tick(60)
+
 
 # Основной игровой процесс
 def game_loop(level):
@@ -382,6 +458,7 @@ def game_loop(level):
 
 
 # Основная программа
+initial_screen()
 level = start_screen()
 character_selection()
 game_loop(level)
