@@ -257,10 +257,6 @@ def victory_screen(time_str):
 def game_loop(level):
     global balance, current_width, current_height, is_fullscreen, screen, TIME
 
-    pygame.mixer.music.load('data/music/music.mp3')
-    pygame.mixer.music.play(-1)
-    pygame.mixer.music.set_volume(0.5)
-
     tile_images = {
         'wall': load_image('box.png'),
         'empty': load_image('floor.png'),
@@ -395,7 +391,6 @@ def game_loop(level):
             print("Уровень пройден!")
             print("Время прохождения уровня:", TIME)
             print("Баланс:", balance)
-            pygame.mixer.music.stop()
             victory_screen(time_str)
             level = start_screen()
             character_selection()
