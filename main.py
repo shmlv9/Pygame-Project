@@ -271,6 +271,11 @@ def game_loop(level):
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
 
+    pygame.mixer.music.load('data/music/music.mp3')
+    pygame.mixer.music.play(-1)
+    pygame.mixer.music.set_volume(0.5)
+
+
     class Tile(pygame.sprite.Sprite):
         def __init__(self, tile_type, pos_x, pos_y):
             super().__init__(tiles_group, all_sprites)
@@ -385,6 +390,7 @@ def game_loop(level):
         time_str = f"{minutes:02d}:{seconds:02d}"
 
         if victory:
+            pygame.mixer.music.stop()
             # Записываем время прохождения уровня в переменную TIME в формате ММ:СС
             TIME = time_str
             balance += 10 * level
