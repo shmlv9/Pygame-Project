@@ -387,7 +387,7 @@ def game_loop(level):
         if victory:
             # Записываем время прохождения уровня в переменную TIME в формате ММ:СС
             TIME = time_str
-            balance += 10
+            balance += 10 * level
             print("Уровень пройден!")
             print("Время прохождения уровня:", TIME)
             print("Баланс:", balance)
