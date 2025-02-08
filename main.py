@@ -260,7 +260,9 @@ def game_loop(level):
     tile_images = {
         'wall': load_image('box.png'),
         'empty': load_image('floor.png'),
-        'exit': load_image('exit.png')
+        'exit': load_image('exit.png'),
+        'money': load_image('floor-with-money.png')
+
     }
     player_image = load_image(characters[current_character])
     player_image = pygame.transform.scale(player_image, (40, 40))
@@ -274,7 +276,6 @@ def game_loop(level):
     pygame.mixer.music.load('data/music/music.mp3')
     pygame.mixer.music.play(-1)
     pygame.mixer.music.set_volume(0.5)
-
 
     class Tile(pygame.sprite.Sprite):
         def __init__(self, tile_type, pos_x, pos_y):
@@ -294,6 +295,7 @@ def game_loop(level):
 
     def generate_level(level):
         new_player = None
+        exit_coords = None
         for y in range(len(level)):
             for x in range(len(level[y])):
                 if level[y][x] == '.':
@@ -306,11 +308,26 @@ def game_loop(level):
                 elif level[y][x] == 'E':
                     Tile('exit', x, y)
                     exit_coords = (x, y)
+                elif level[y][x] == 'M':
+                    Tile('money', x, y)
         return new_player, exit_coords
 
     def check_box(x, y):
         if 0 <= y < len(level_map) and 0 <= x < len(level_map[0]):
             return level_map[y][x] != '#'
+        return False
+
+    def check_money(x, y):
+        if 0 <= y < len(level_map) and 0 <= x < len(level_map[0]) and level_map[y][x] == 'M':
+            sound = pygame.mixer.Sound('data/sounds/zvuk-monetyi-na-tverdoy-poverhnosti-4-30628.mp3')
+            sound.play()
+            for tile in tiles_group:
+                pos_x = tile.rect[0] // 50
+                pos_y = tile.rect[1] // 50
+                if pos_x == x and pos_y == y:
+                    tile.image = load_image('floor.png')
+            level_map[y][x] = '.'
+            return True
         return False
 
     level_map = load_level(f'level{level}.txt')
@@ -354,6 +371,8 @@ def game_loop(level):
                     player.pos_x = new_x
                     player.rect.x += tile_width
                     last_move_time = current_time
+                if check_money(new_x, player.pos_y):
+                    balance += 1
 
             if keys[pygame.K_LEFT]:
                 new_x = player.pos_x - 1
@@ -363,6 +382,8 @@ def game_loop(level):
                     player.pos_x = new_x
                     player.rect.x -= tile_width
                     last_move_time = current_time
+                if check_money(new_x, player.pos_y):
+                    balance += 1
 
             if keys[pygame.K_UP]:
                 new_y = player.pos_y - 1
@@ -372,6 +393,8 @@ def game_loop(level):
                     player.pos_y = new_y
                     player.rect.y -= tile_height
                     last_move_time = current_time
+                if check_money(player.pos_x, new_y):
+                    balance += 1
 
             if keys[pygame.K_DOWN]:
                 new_y = player.pos_y + 1
@@ -381,6 +404,8 @@ def game_loop(level):
                     player.pos_y = new_y
                     player.rect.y += tile_height
                     last_move_time = current_time
+                if check_money(player.pos_x, new_y):
+                    balance += 1
 
         # Вычисляем время прохождения в формате ММ:СС
         elapsed_ms = pygame.time.get_ticks() - start_time
@@ -394,9 +419,6 @@ def game_loop(level):
             # Записываем время прохождения уровня в переменную TIME в формате ММ:СС
             TIME = time_str
             balance += 10 * level
-            print("Уровень пройден!")
-            print("Время прохождения уровня:", TIME)
-            print("Баланс:", balance)
             victory_screen(time_str)
             level = start_screen()
             character_selection()
@@ -426,7 +448,7 @@ def game_loop(level):
                 dark_coords.append((x, y))
         for (x, y) in set(dark_coords):
             transparent_rect = pygame.Surface((50, 50), pygame.SRCALPHA)
-            transparent_rect.fill((0, 0, 0, 128))
+            transparent_rect.fill((0, 0, 0, 196))
             vision_surface.blit(transparent_rect, (x, y))
 
         player_vision_x = 2 * tile_width + 5
