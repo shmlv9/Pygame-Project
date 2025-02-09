@@ -17,7 +17,7 @@ clock = pygame.time.Clock()
 all_characters = ["chill-guy.png", "dog_with_apple.png", "nuggets.png", "steve.png", "gopher.png", "elephant.png"]
 owned_characters = all_characters[:2]  # изначально доступны только первые 2 персонажа
 current_character = 0
-balance = 200
+balance = 0
 
 
 def draw_balance(surface):
@@ -302,12 +302,16 @@ def buy_character_screen():
 # ==========================
 def leaderboard_screen():
     global current_width, current_height, is_fullscreen, screen
-    font = pygame.font.Font(None, 50)
-    title_text = font.render("Таблица рекордов", True, pygame.Color('white'))
-    info_text = font.render("Нажмите ENTER для возврата", True, pygame.Color('white'))
+    # Используем отдельные шрифты для заголовка, списка рекордов и подсказки
+    title_font = pygame.font.Font(None, 60)
+    record_font = pygame.font.Font(None, 40)
+    info_font = pygame.font.Font(None, 30)
 
-    title_pos = (base_width // 2 - title_text.get_width() // 2, base_height // 2 - 50)
-    info_pos = (base_width // 2 - info_text.get_width() // 2, base_height // 2 + 10)
+    title_text = title_font.render("Рекорды", True, pygame.Color('white'))
+    # Формируем список строк для каждого уровня (здесь для 5 уровней)
+    records = [f"уровень {i + 1} - сосиска" for i in range(5)]
+    record_texts = [record_font.render(rec, True, pygame.Color('white')) for rec in records]
+    info_text = info_font.render("Нажмите ENTER для возврата", True, pygame.Color('white'))
 
     while True:
         for event in pygame.event.get():
@@ -328,8 +332,18 @@ def leaderboard_screen():
                         screen = pygame.display.set_mode((current_width, current_height), pygame.RESIZABLE)
                 elif event.key == pygame.K_RETURN:
                     return
+
         base_surface.fill((0, 0, 0))
+        # Отрисовываем заголовок "Рекорды" вверху
+        title_pos = (base_width // 2 - title_text.get_width() // 2, 30)
         base_surface.blit(title_text, title_pos)
+        # Отрисовываем список рекордов ниже заголовка
+        start_y = title_pos[1] + title_text.get_height() + 20
+        for i, rec_text in enumerate(record_texts):
+            rec_pos = (base_width // 2 - rec_text.get_width() // 2, start_y + i * (rec_text.get_height() + 10))
+            base_surface.blit(rec_text, rec_pos)
+        # Подсказка для возврата
+        info_pos = (base_width // 2 - info_text.get_width() // 2, base_height - info_text.get_height() - 20)
         base_surface.blit(info_text, info_pos)
         draw_balance(base_surface)
 
@@ -595,9 +609,7 @@ def game_loop(level):
         clock.tick(60)
 
 
-# ==========================
-# Основная программа
-# ==========================
+
 while True:
     option = main_menu()
     if option == "start":
