@@ -2,6 +2,7 @@ import pygame
 import sys
 import random
 from load_functions import load_image, load_level
+from database_command import get_record, update_record
 
 # Инициализация Pygame и базовые настройки окна
 pygame.init()
@@ -309,7 +310,7 @@ def leaderboard_screen():
 
     title_text = title_font.render("Рекорды", True, pygame.Color('white'))
     # Формируем список строк для каждого уровня (здесь для 5 уровней)
-    records = [f"уровень {i + 1} - сосиска" for i in range(5)]
+    records = [f"уровень {i + 1} - {get_record(f'level{i + 1}')}" for i in range(5)]
     record_texts = [record_font.render(rec, True, pygame.Color('white')) for rec in records]
     info_text = info_font.render("Нажмите ENTER для возврата", True, pygame.Color('white'))
 
