@@ -22,15 +22,11 @@ balance = 0
 
 
 def draw_balance(surface):
-    """Отображает баланс в левом верхнем углу на переданной поверхности."""
     small_font = pygame.font.Font(None, 30)
     balance_text = small_font.render(f"Баланс: {balance}", True, pygame.Color('white'))
     surface.blit(balance_text, (10, 10))
 
 
-# ==========================
-# Главное меню
-# ==========================
 def main_menu():
     global current_width, current_height, is_fullscreen, screen
     title_font = pygame.font.Font(None, 80)
@@ -111,9 +107,6 @@ def main_menu():
         clock.tick(60)
 
 
-# ==========================
-# Экран выбора уровня
-# ==========================
 def start_screen():
     global current_width, current_height, is_fullscreen, screen
     font = pygame.font.Font(None, 50)
@@ -168,9 +161,6 @@ def start_screen():
         clock.tick(60)
 
 
-# ==========================
-# Экран выбора персонажа
-# ==========================
 def character_selection():
     global current_character, current_width, current_height, is_fullscreen, screen, owned_characters
     font = pygame.font.Font(None, 50)
@@ -221,15 +211,12 @@ def character_selection():
         clock.tick(60)
 
 
-# ==========================
-# Экран покупки персонажа
-# ==========================
 def buy_character_screen():
     global balance, all_characters, owned_characters, current_width, current_height, is_fullscreen, screen
     # Используем меньший шрифт, чтобы текст поместился
     buy_font = pygame.font.Font(None, 30)
     # Разбиваем текст вопроса на две строки
-    question_text1 = buy_font.render("Купить рандомного", True, pygame.Color('white'))
+    question_text1 = buy_font.render("Купить случайного", True, pygame.Color('white'))
     question_text2 = buy_font.render("персонажа за 50 денег?", True, pygame.Color('white'))
     yes_text = buy_font.render("ДА", True, pygame.Color('white'))
     no_text = buy_font.render("НЕТ", True, pygame.Color('white'))
@@ -298,9 +285,6 @@ def buy_character_screen():
         clock.tick(60)
 
 
-# ==========================
-# Экран таблицы рекордов
-# ==========================
 def leaderboard_screen():
     global current_width, current_height, is_fullscreen, screen
     # Используем отдельные шрифты для заголовка, списка рекордов и подсказки
@@ -357,9 +341,6 @@ def leaderboard_screen():
         clock.tick(60)
 
 
-# ==========================
-# Экран победы
-# ==========================
 def victory_screen(time_str):
     global current_width, current_height, screen
     while True:
@@ -402,9 +383,6 @@ def victory_screen(time_str):
         clock.tick(60)
 
 
-# ==========================
-# Основной игровой цикл
-# ==========================
 def game_loop(level):
     global balance, current_width, current_height, is_fullscreen, screen, current_character, owned_characters
     tile_images = {
@@ -413,7 +391,6 @@ def game_loop(level):
         'exit': load_image('exit.png'),
         'money': load_image('floor-with-money.png')
     }
-    # Используем выбранного персонажа из списка owned_characters
     player_image = load_image(owned_characters[current_character])
     player_image = pygame.transform.scale(player_image, (40, 40))
     tile_width = tile_height = 50
@@ -608,7 +585,6 @@ def game_loop(level):
                                      (current_height - int(base_height * scale)) // 2))
         pygame.display.flip()
         clock.tick(60)
-
 
 
 while True:
